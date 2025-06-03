@@ -9,7 +9,11 @@ public class MemberApp {
 
     // 테스트를 할 떄 이렇게 하는건 별로다
     public static void main(String[] args) {
-        MemberService memberService = new MemberServiceImpl();
+        // Appconfig 없을때
+//        MemberService memberService = new MemberServiceImpl();
+        // Appconfig 있을 때
+        AppConfig appConfig = new AppConfig();
+        MemberService memberService = appConfig.memberService();
         Member member = new Member(1L, "memberA", Grade.VIP);
         memberService.join(member);
 
