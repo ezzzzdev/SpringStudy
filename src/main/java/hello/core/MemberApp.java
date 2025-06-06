@@ -4,6 +4,8 @@ import hello.core.member.Grade;
 import hello.core.member.Member;
 import hello.core.member.MemberService;
 import hello.core.member.MemberServiceImpl;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 public class MemberApp {
 
@@ -12,8 +14,14 @@ public class MemberApp {
         // Appconfig 없을때
 //        MemberService memberService = new MemberServiceImpl();
         // Appconfig 있을 때
-        AppConfig appConfig = new AppConfig();
-        MemberService memberService = appConfig.memberService();
+//        AppConfig appConfig = new AppConfig();
+//        MemberService memberService = appConfig.memberService();
+
+        // AppConfig 클래스의 @Configuration의 @Bean을 찾아와서 객체화
+        ApplicationContext applicationContext = new AnnotationConfigApplicationContext(AppConfig.class);
+        // (이름, 리턴 타입)
+        MemberService memberService = applicationContext.getBean("memberService", MemberService.class);
+
         Member member = new Member(1L, "memberA", Grade.VIP);
         memberService.join(member);
 
