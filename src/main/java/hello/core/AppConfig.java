@@ -9,6 +9,7 @@ import hello.core.member.MemberServiceImpl;
 import hello.core.member.MemoryMemberRepository;
 import hello.core.order.OrderService;
 import hello.core.order.OrderServiceImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,20 +21,40 @@ import org.springframework.context.annotation.Configuration;
 public class AppConfig {
 
 
-    // AppConfig를 통해 memberService를 사용하면
+    // @Bean memberService -> new MemoryMemberRepository()
+    // @Bean orderService -> new MemoryMemberRepository()
+    // 이러면 싱글톤이 깨지는거 아닌가? -> ConfigurationSingletonTest
+    // 결론은 안깨짐
+    
+    // call 순서?
+    // memberService - memberRepository * 2 -> orderService -> memberRepository (예상)
+    // memberService - memberRepository -> orderService (?)
+
+    // why?
+    // @Configuration 때문이다.
+    // @Configuration이 만약 사라지고 @Bean만 남긴다면??
+    // 순수 AppConfig가 그대로 호출된다 -> CGLIB이 호출된게 아님
+    // 추가로 원래 예상했던 call 순서대로 불려오면서 싱글톤이 깨진게 보임(순수한 Java코드로 보임)
+    // 추가로 스프링 컨테이너의 관리를 받지 않기 때문에 impl에 있는 내용들을 직접적으로 호출하는 것과 같다.
+    // 아래와 같이 @Configuration처럼 직접 의존성을 주입하는 방법도 있긴 함.
+//    @Autowired MemberRepository memberRepository;
+
     @Bean
     public MemberService memberService(){
-        return new MemberServiceImpl(MemberRepository());
+        System.out.println("call AppConfig.memberService");
+        return new MemberServiceImpl(memberRepository());
     }
 
     @Bean
-    public MemberRepository MemberRepository() {
+    public MemberRepository memberRepository() {
+        System.out.println("call AppConfig.memberRepository");
         return new MemoryMemberRepository();
     }
 
     @Bean
     public OrderService orderService(){
-        return new OrderServiceImpl(MemberRepository(), discountPolicy());
+        System.out.println("call AppConfig.orderService");
+        return new OrderServiceImpl(memberRepository(), discountPolicy());
     }
 
     @Bean
